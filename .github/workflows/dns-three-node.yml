@@ -1,0 +1,23 @@
+name: Three-node DNS lab Compose validation
+on:
+  pull_request:
+    paths:
+      - "dns-lab/**"
+      - ".github/workflows/dns-three-node.yml"
+  push:
+    branches: [main]
+    paths:
+      - "dns-lab/**"
+      - ".github/workflows/dns-three-node.yml"
+jobs:
+  config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose overlay
+        working-directory: dns-lab
+        run: |
+          cp .env.example .env
+          docker compose -f compose.yaml -f compose.three-node.yaml config --quiet
+          bash -n scripts/check-three.sh
+          rm .env

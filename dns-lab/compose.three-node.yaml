@@ -1,0 +1,61 @@
+# Experimental overlay: docker compose -f compose.yaml -f compose.three-node.yaml ...
+# This overlay adds two isolated secondary nodes to the primary lab.
+# No production domains or external DNS ports.
+services:
+  primary:
+    command:
+      - --launch=gsqlite3
+      - --gsqlite3-database=/var/lib/powerdns/pdns.sqlite3
+      - --api=yes
+      - --api-key=${PDNS_API_KEY:?Set PDNS_API_KEY}
+      - --webserver=yes
+      - --webserver-address=0.0.0.0
+      - --webserver-allow-from=127.0.0.1,172.16.0.0/12
+      - --local-address=0.0.0.0
+      - --local-port=53
+      - --primary=yes
+      - --allow-axfr-ips=172.16.0.0/12
+      - --default-soa-content=ns1.lab.invalid hostmaster.lab.invalid 0 10800 3600 604800 3600
+  secondary2:
+    image: powerdns/pdns-auth-49:4.9.9
+    restart: unless-stopped
+    command:
+      - --launch=gsqlite3
+      - --gsqlite3-database=/var/lib/powerdns/pdns.sqlite3
+      - --api=yes
+      - --api-key=${PDNS_API_KEY:?Set PDNS_API_KEY}
+      - --webserver=yes
+      - --webserver-address=0.0.0.0
+      - --webserver-allow-from=127.0.0.1,172.16.0.0/12
+      - --local-address=0.0.0.0
+      - --local-port=53
+      - --secondary=yes
+    ports:
+      - "127.0.0.1:5302:53/udp"
+      - "127.0.0.1:5302:53/tcp"
+      - "127.0.0.1:8090:8081/tcp"
+    volumes:
+      - secondary2-data:/var/lib/powerdns
+  secondary3:
+    image: powerdns/pdns-auth-49:4.9.9
+    restart: unless-stopped
+    command:
+      - --launch=gsqlite3
+      - --gsqlite3-database=/var/lib/powerdns/pdns.sqlite3
+      - --api=yes
+      - --api-key=${PDNS_API_KEY:?Set PDNS_API_KEY}
+      - --webserver=yes
+      - --webserver-address=0.0.0.0
+      - --webserver-allow-from=127.0.0.1,172.16.0.0/12
+      - --local-address=0.0.0.0
+      - --local-port=53
+      - --secondary=yes
+    ports:
+      - "127.0.0.1:5303:53/udp"
+      - "127.0.0.1:5303:53/tcp"
+      - "127.0.0.1:8091:8081/tcp"
+    volumes:
+      - secondary3-data:/var/lib/powerdns
+volumes:
+  secondary2-data:
+  secondary3-data:
