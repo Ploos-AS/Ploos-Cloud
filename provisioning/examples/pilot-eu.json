@@ -1,0 +1,12 @@
+{
+  "request_id": "pilot-001",
+  "organization_id": "demo-association",
+  "service": "drive",
+  "region": "EU",
+  "hostname": "pilot.example.org",
+  "quota_gb_total": 50,
+  "modules": [
+    "files"
+  ],
+  "tenancy": "dedicated"
+}
