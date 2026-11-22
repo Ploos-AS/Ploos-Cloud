@@ -1,0 +1,28 @@
+name: DNS lab static checks
+on:
+  pull_request:
+    paths:
+      - "dns-lab/**"
+      - ".github/workflows/dns-smoke-static.yml"
+  push:
+    branches: [main]
+    paths:
+      - "dns-lab/**"
+      - ".github/workflows/dns-smoke-static.yml"
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose
+        working-directory: dns-lab
+        run: |
+          cp .env.example .env
+          docker compose -f compose.yaml config --quiet
+          docker compose -f compose.yaml -f compose.three-node.yaml config --quiet
+      - name: Check shell syntax
+        run: |
+          bash -n dns-lab/scripts/preflight.sh
+          bash -n dns-lab/scripts/smoke.sh
+      - name: Unit tests
+        run: python3 -m unittest discover -s dns-lab -p 'test_*.py'
