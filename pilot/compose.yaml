@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nextcloud -d nextcloud"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [internal]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD}"]
+    volumes:
+      - redis:/data
+    networks: [internal]
+
+  app:
+    image: nextcloud:31-apache
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_HOST_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD}
+      NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER:?set NEXTCLOUD_ADMIN_USER}
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD:?set NEXTCLOUD_ADMIN_PASSWORD}
+      NEXTCLOUD_TRUSTED_DOMAINS: ${NEXTCLOUD_HOSTNAME:?set NEXTCLOUD_HOSTNAME}
+      OVERWRITEHOST: ${NEXTCLOUD_HOSTNAME:?set NEXTCLOUD_HOSTNAME}
+      OVERWRITEPROTOCOL: https
+    ports:
+      - "127.0.0.1:${NEXTCLOUD_HTTP_PORT:-8086}:80"
+    volumes:
+      - nextcloud:/var/www/html
+    networks: [internal]
+
+  cron:
+    image: nextcloud:31-apache
+    restart: unless-stopped
+    depends_on: [app]
+    entrypoint: /cron.sh
+    volumes:
+      - nextcloud:/var/www/html
+    networks: [internal]
+
+networks:
+  internal:
+
+volumes:
+  db:
+  redis:
+  nextcloud:
