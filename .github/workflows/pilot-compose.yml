@@ -1,0 +1,24 @@
+name: Pilot Compose validation
+on:
+  pull_request:
+    paths:
+      - "pilot/**"
+      - ".github/workflows/pilot-compose.yml"
+  push:
+    branches: [main]
+    paths:
+      - "pilot/**"
+      - ".github/workflows/pilot-compose.yml"
+jobs:
+  config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate shell syntax
+        run: bash -n pilot/scripts/*.sh
+      - name: Validate Compose configuration (no containers started)
+        working-directory: pilot
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
+          rm .env
