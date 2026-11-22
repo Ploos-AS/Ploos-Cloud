@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ploos Cloud Nextcloud instance request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "request_id",
+    "organization_id",
+    "service",
+    "region",
+    "hostname",
+    "quota_gb_total",
+    "modules"
+  ],
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"
+    },
+    "organization_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"
+    },
+    "service": {
+      "enum": [
+        "drive",
+        "team",
+        "business"
+      ]
+    },
+    "region": {
+      "enum": [
+        "EU",
+        "NO"
+      ]
+    },
+    "hostname": {
+      "type": "string",
+      "format": "hostname",
+      "minLength": 4,
+      "maxLength": 253
+    },
+    "quota_gb_total": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100000
+    },
+    "modules": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems": 1,
+      "items": {
+        "enum": [
+          "files",
+          "calendar",
+          "contacts",
+          "tasks",
+          "deck",
+          "notes",
+          "photos",
+          "office",
+          "talk",
+          "forms"
+        ]
+      },
+      "contains": {
+        "const": "files"
+      }
+    },
+    "tenancy": {
+      "const": "dedicated"
+    }
+  },
+  "examples": [
+    {
+      "request_id": "pilot-001",
+      "organization_id": "demo-association",
+      "service": "drive",
+      "region": "EU",
+      "hostname": "pilot.example.org",
+      "quota_gb_total": 50,
+      "modules": [
+        "files"
+      ],
+      "tenancy": "dedicated"
+    }
+  ]
+}
