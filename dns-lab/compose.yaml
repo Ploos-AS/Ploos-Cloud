@@ -1,0 +1,26 @@
+# Disposable authoritative DNS lab only. Never delegate production domains here.
+services:
+  primary:
+    image: powerdns/pdns-auth-49:4.9.9
+    restart: unless-stopped
+    environment:
+      PDNS_AUTH_API: "yes"
+    command:
+      - --launch=gsqlite3
+      - --gsqlite3-database=/var/lib/powerdns/pdns.sqlite3
+      - --api=yes
+      - --api-key=${PDNS_API_KEY:?Set PDNS_API_KEY}
+      - --webserver=yes
+      - --webserver-address=0.0.0.0
+      - --webserver-allow-from=127.0.0.1,172.16.0.0/12
+      - --local-address=0.0.0.0
+      - --local-port=53
+      - --default-soa-content=ns1.lab.invalid hostmaster.lab.invalid 0 10800 3600 604800 3600
+    ports:
+      - "127.0.0.1:5301:53/udp"
+      - "127.0.0.1:5301:53/tcp"
+      - "127.0.0.1:8089:8081/tcp"
+    volumes:
+      - primary-data:/var/lib/powerdns
+volumes:
+  primary-data:
