@@ -1,0 +1,20 @@
+name: DNS NOTIFY script checks
+on:
+  pull_request:
+    paths:
+      - "dns-lab/**"
+      - ".github/workflows/dns-notify.yml"
+  push:
+    branches: [main]
+    paths:
+      - "dns-lab/**"
+      - ".github/workflows/dns-notify.yml"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run DNS lab unit tests
+        run: python3 -m unittest discover -s dns-lab -p 'test_*.py'
+      - name: Compile NOTIFY helper
+        run: python3 -m py_compile dns-lab/scripts/notify-secondaries.py
